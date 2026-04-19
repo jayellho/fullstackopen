@@ -875,7 +875,7 @@ Old React required the use of class components if any components required state.
 ## Debugging React applications
 - Keep the browser's developer console **open at all times**.
 - Fix errors **immediately** instead of adding new code.
-- use `console.log` for debugging.
+- Use `console.log` for debugging.
 - Add the **React developer tools extension** to Chrome - this adds a `Components` tab.
 
 ## Rules of Hooks
@@ -947,7 +947,7 @@ const App = () => {
   }
 
   return (
-    // function call fed into mouse event is okay because function returns a function.
+    // this function call fed into mouse event is okay because this particular function returns a function.
     <div>
       {value}
       <button onClick={hello('world')}>button</button>
