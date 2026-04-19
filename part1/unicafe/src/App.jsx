@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-const Statistics = (props) => {
-  if (props.good === 0 && props.neutral === 0 && props.bad === 0) {
+const Statistics = ({good, neutral, bad}) => {
+  if (good === 0 && neutral === 0 && bad === 0) {
     return (
       <div>
         No feedback given
@@ -11,17 +11,17 @@ const Statistics = (props) => {
   return (
     <div>
       <h1>statistics</h1>
-      <text>good: {props.good}</text>
+      <text>good: {good}</text>
       <br />
-      <text>neutral: {props.neutral}</text>
+      <text>neutral: {neutral}</text>
       <br />
-      <text>bad: {props.bad}</text>
+      <text>bad: {bad}</text>
       <br />
-      <text>all: {props.good + props.neutral + props.bad}</text>
+      <text>all: {good + neutral + bad}</text>
       <br />
-      <text>average: {(props.good - props.bad) / (props.good + props.neutral + props.bad)}</text>
+      <text>average: {(good - bad) / (good + neutral + bad)}</text>
       <br />
-      <text>positive: {props.good / (props.good + props.neutral + props.bad) * 100} %</text>
+      <text>positive: {good / (good + neutral + bad) * 100} %</text>
     </div>
   )
 }
