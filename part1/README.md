@@ -302,6 +302,116 @@ const result = average(2, 5)
 // result is now 3.5
 ```
 
+## Object methods and "this"
+**NOTE: Having React Hooks means we do not need to define objects with methods but useful to know about.**
+Keyword `this` refers to object itself. Assign methods to object by defining properties which are functions:
+```JavaScript
+const arto = {
+  name: 'Arto Hellas',
+  age: 35,
+  education: 'PhD',
+
+  greet: function() {
+    console.log('hello, my name is ' + this.name)
+  },
+}
+
+arto.greet()  // "hello, my name is Arto Hellas" gets printed
+```
+
+Methods can be assigned to objects even after creation of object:
+```JavaScript
+const arto = {
+  name: 'Arto Hellas',
+  age: 35,
+  education: 'PhD',
+  greet: function() {
+    console.log('hello, my name is ' + this.name)
+  },
+}
+
+
+arto.growOlder = function() {
+  this.age += 1
+}
+
+console.log(arto.age)   // 35 is printed
+arto.growOlder()
+console.log(arto.age)   // 36 is printed
+```
+
+Introducing the method `doAddition` which can be called in another way by storing a method reference in a variable and calling it via the variable (`referenceToAddition`):
+```JavaScript
+const arto = {
+  name: 'Arto Hellas',
+  age: 35,
+  education: 'PhD',
+  greet: function() {
+    console.log('hello, my name is ' + this.name)
+  },
+
+  doAddition: function(a, b) {
+    console.log(a + b)
+  },
+}
+
+arto.doAddition(1, 4)        // 5 is printed
+
+const referenceToAddition = arto.doAddition
+referenceToAddition(10, 15)   // 25 is printed
+```
+
+This does not work for the method `greet` as when calling method by reference, method loses knowledge of the original `this`:
+```JavaScript
+arto.greet()       // "hello, my name is Arto Hellas" gets printed
+
+const referenceToGreet = arto.greet
+referenceToGreet() // prints "hello, my name is undefined"
+```
+NOTE: In JS, the value of `this` is defined based on how the method is called. Avoid all these by using `this`-less JS.
+
+We can use `bind` to preserve the original `this`:
+```JavaScript
+setTimeout(arto.greet.bind(arto), 1000)
+```
+
+## Classes
+There are no class mechanisms in JS but it has features to simulate OOP classes.
+```JavaScript
+class Person {
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+  greet() {
+    console.log('hello, my name is ' + this.name)
+  }
+}
+
+const adam = new Person('Adam Ondra', 33)
+adam.greet()
+
+const janja = new Person('Janja Garnbret', 27)
+janja.greet()
+```
+While JS classes are reminiscent of classes in Java, they are still plain JS objects built on **prototypal inheritance**.
+The type of any class instance in JS is still `Object`.
+
+## JavaScript materials
+1. [Mozilla's JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+2. [JavaScript language overview](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Language_overview)
+3. [You-Don't-Know-JS](https://github.com/getify/You-Dont-Know-JS)
+4. [javascript.info](https://javascript.info/)
+5. [Eloquent JavaScript](https://eloquentjavascript.net/)
+6. [Namaste JavaScript](https://www.youtube.com/playlist?list=PLlasXeu85E9cQ32gLCvAvr9vNaUccPVNP)
+7. [egghead.io](https://egghead.io/)
+
+
+
+
+
+
+
 
 
 
