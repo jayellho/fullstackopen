@@ -406,11 +406,718 @@ The type of any class instance in JS is still `Object`.
 6. [Namaste JavaScript](https://www.youtube.com/playlist?list=PLlasXeu85E9cQ32gLCvAvr9vNaUccPVNP)
 7. [egghead.io](https://egghead.io/)
 
+# Component state, event handlers
+## Component helper functions
+```JavaScript
+const Hello = (props) => {
+
+  const bornYear = () => { // We encapsulate the logic for guessing the year of birth here.
+    const yearNow = new Date().getFullYear()
+    return yearNow - props.age
+  } // In JS (unlike many other programming languages), function-in-function is common and efficient practice.
+
+  return (
+    <div>
+      <p>
+        Hello {props.name}, you are {props.age} years old
+      </p>
+
+      <p>So you were probably born in {bornYear()}</p> 
+    </div>
+  )
+}
+```
+
+## Destructuring
+```JavaScript
+props = {
+  name: 'Arto Hellas',
+  age: 35,
+}
+
+const Hello = (props) => {
+
+  // const name = props.name
+  // const age = props.age
+  // Below is an example of destructuring. Above is what we would have to do without destructuring.
+  const { name, age } = props
 
 
+  const bornYear = () => new Date().getFullYear() - age // Compact syntax for arrow function because it consists of a single expression.
+
+  return (
+    <div>
+
+      <p>Hello {name}, you are {age} years old</p>
+      <p>So you were probably born in {bornYear()}</p>
+    </div>
+  )
+}
+```
+
+Another step further - just destructure in the function params:
+```JavaScript
+const Hello = ({name, age}) =>{
+  ...
+}
+```
+
+## Page re-rendering
+Can do so via `render()`:
+```JavaScript
+let counter = 1
+
+const root = ReactDOM.createRoot(document.getElementById('root'))
+
+const refresh = () => {
+  root.render(
+    <App counter={counter} />
+  )
+}
+
+refresh()
+counter += 1
+refresh()
+counter += 1
+refresh()
+```
+
+The above happens in a very short time. We can set longer intervals with `setInterval()`:
+```JavaScript
+setInterval(() => {
+  refresh()
+  counter += 1
+}, 1000)
+```
+
+However, `render` is not recommended. Use the below instead.
+
+## Stateful component
+Basically, introduction to React's `useState` hook.
+```JavaScript
+import { useState } from 'react'
+
+const App = () => {
+
+  const [ counter, setCounter ] = useState(0)
 
 
+  setTimeout(
+    () => setCounter(counter + 1),
+    1000
+  )
 
+  return (
+    <div>{counter}</div>
+  )
+}
+
+export default App
+```
+
+## Event handling
+- Handlers called when specific events occur.
+- Examples are mouse events like click.
+
+E.g.:
+```JavaScript
+const App = () => {
+  const [ counter, setCounter ] = useState(0)
+
+
+  const handleClick = () => {
+    console.log('clicked')
+  }
+
+  return (
+    <div>
+      <div>{counter}</div>
+
+      <button onClick={handleClick}>
+        plus
+      </button>
+    </div>
+  )
+}
+```
+
+Instead of defining a separate function, can do in-line too:
+```JavaScript
+<button onClick={() => setCounter(counter + 1)}>
+  plus
+</button>
+```
+
+## An event handler is a function
+It is a function OR a function reference and NOT a function call. The below would error:
+```JavaScript
+// this is a function call
+<button onClick={setCounter(counter + 1)}>
+```
+
+This is okay:
+```JavaScript
+<button onClick={() => setCounter(counter + 1)}> 
+  plus
+</button>
+```
+
+## Passing state - to child components
+One best practice in React: **lift state up** in the component hierarchy. Then, we would need to pass it down to the children.
+```JavaScript
+// child component 1 - receives state in props
+const Display = (props) => {
+  return (
+    <div>{props.counter}</div>
+  )
+}
+
+// child component 2 - receives state in props AND click handler
+const Button = (props) => {
+  return (
+    <button onClick={props.onClick}>
+      {props.text}
+    </button>
+  )
+}
+
+// parent component where the state (counter) and handler (setToZero) are. State passed down as props.
+const App = () => {
+  const [ counter, setCounter ] = useState(0)
+
+  const increaseByOne = () => setCounter(counter + 1)
+
+  const decreaseByOne = () => setCounter(counter - 1)
+  const setToZero = () => setCounter(0)
+
+  return (
+    <div>
+      <Display counter={counter}/>
+
+      <Button
+        onClick={increaseByOne}
+        text='plus'
+      />
+      <Button
+        onClick={setToZero}
+        text='zero'
+      />     
+      <Button
+        onClick={decreaseByOne}
+        text='minus'
+      />           
+    </div>
+  )
+}
+```
+
+## Changes in state cause re-rendering
+Calling a function that changes the state causes the component to re-render.
+
+## Refactoring the components
+Instead of:
+```JavaScript
+const Display = (props) => {
+  return (
+    <div>{props.counter}</div>
+  )
+}
+```
+
+Simplify by destructuring like so:
+```JavaScript
+const Display = ({ counter }) => {
+  return (
+    <div>{counter}</div>
+  )
+}
+```
+
+Further simplify by using the compact form of arrow functions:
+```JavaScript
+const Display = ({ counter }) => <div>{counter}</div>
+```
+
+Instead of:
+```JavaScript
+const Button = (props) => {
+  return (
+    <button onClick={props.onClick}>
+      {props.text}
+    </button>
+  )
+}
+```
+
+Destructure and use compact arrow function:
+```JavaScript
+const Button = ({ onClick, text }) => <button onClick={onClick}>{text}</button>
+```
+
+# A more complex state, debugging React apps
+## Complex state
+```JavaScript
+const App = () => {
+  const [clicks, setClicks] = useState({ // this combines two states into one useState hook. not recommended, just for illustration on the object spreading syntax.
+    left: 0, right: 0
+  })
+
+  const handleLeftClick = () => { // handlers a little messy.
+    const newClicks = { 
+      left: clicks.left + 1, 
+      right: clicks.right 
+    }
+    setClicks(newClicks)
+  }
+
+  const handleRightClick = () => { // handlers a little messy.
+    const newClicks = { 
+      left: clicks.left, 
+      right: clicks.right + 1 
+    }
+    setClicks(newClicks)
+  }
+
+  return (
+    <div>
+      {clicks.left}
+      <button onClick={handleLeftClick}>left</button>
+      <button onClick={handleRightClick}>right</button>
+      {clicks.right}
+    </div>
+  )
+}
+```
+
+Handlers can be made neater with **object spreading** syntax:
+```JavaScript
+const handleLeftClick = () => {
+  const newClicks = { 
+    ...clicks, 
+    left: clicks.left + 1 
+  }
+  setClicks(newClicks)
+}
+
+const handleRightClick = () => {
+  const newClicks = { 
+    ...clicks, 
+    right: clicks.right + 1 
+  }
+  setClicks(newClicks)
+}
+```
+`{ ...clicks }` creates a new object that has copies of all the properties of the `clicks` object.
+
+We can further simplify to the below:
+```JavaScript
+const handleLeftClick = () =>
+  setClicks({ ...clicks, left: clicks.left + 1 })
+
+const handleRightClick = () =>
+  setClicks({ ...clicks, right: clicks.right + 1 })
+```
+
+The below is an anti-pattern. It is forbidden in React to mutate state directly.
+```JavaScript
+const handleLeftClick = () => {
+  clicks.left++
+  setClicks(clicks)
+}
+```
+
+## Handling arrays
+```JavaScript
+const App = () => {
+  const [left, setLeft] = useState(0)
+  const [right, setRight] = useState(0)
+
+  const [allClicks, setAll] = useState([])
+
+
+  const handleLeftClick = () => {
+    setAll(allClicks.concat('L')) // concat creates a new copy of the array with the item added to it.
+    setLeft(left + 1)
+  }
+
+
+  const handleRightClick = () => {
+    setAll(allClicks.concat('R'))
+    setRight(right + 1)
+  }
+
+  return (
+    <div>
+      {left}
+      <button onClick={handleLeftClick}>left</button>
+      <button onClick={handleRightClick}>right</button>
+      {right}
+
+      <p>{allClicks.join(' ')}</p>
+    </div>
+  )
+}
+```
+
+Do **NOT** use `.push` like below - remember that we do not want to mutate state directly.
+```JavaScript
+const handleLeftClick = () => {
+  allClicks.push('L')
+  setAll(allClicks)
+  setLeft(left + 1)
+}
+```
+
+## Update of state is asynchronous
+```JavaScript
+const App = () => {
+  const [left, setLeft] = useState(0)
+  const [right, setRight] = useState(0)
+  const [allClicks, setAll] = useState([])
+
+  const [total, setTotal] = useState(0)
+
+  const handleLeftClick = () => {
+    setAll(allClicks.concat('L'))
+    setLeft(left + 1)
+
+    setTotal(left + right) // this might not reflect correctly because the state update for left is async.
+  }
+
+  const handleRightClick = () => {
+    setAll(allClicks.concat('R'))
+    setRight(right + 1)
+
+    setTotal(left + right) // this might not reflect correctly because the state update for right is async.
+  }
+
+  return (
+    <div>
+      {left}
+      <button onClick={handleLeftClick}>left</button>
+      <button onClick={handleRightClick}>right</button>
+      {right}
+      <p>{allClicks.join(' ')}</p>
+
+      <p>total {total}</p>
+    </div>
+  )
+}
+```
+
+Fix with the following:
+```JavaScript
+const App = () => {
+  // ...
+  const handleLeftClick = () => {
+    setAll(allClicks.concat('L'))
+    const updatedLeft = left + 1 // this is the fix. we can do the same for the right.
+    setLeft(updatedLeft)
+    setTotal(updatedLeft + right) 
+  }
+
+  // ...
+}
+```
+
+## Conditional rendering
+```JavaScript
+const History = (props) => {
+  if (props.allClicks.length === 0) { // this is the if conditional part
+    return (
+      <div>
+        the app is used by pressing the buttons
+      </div>
+    )
+  }
+
+  return ( // this is the else conditional part
+    <div>
+      button press history: {props.allClicks.join(' ')}
+    </div>
+  )
+}
+
+
+const Button = ({ onClick, text }) => <button onClick={onClick}>{text}</button>
+
+const App = () => {
+  const [left, setLeft] = useState(0)
+  const [right, setRight] = useState(0)
+  const [allClicks, setAll] = useState([])
+
+  const handleLeftClick = () => {
+    setAll(allClicks.concat('L'))
+    setLeft(left + 1)
+  }
+
+  const handleRightClick = () => {
+    setAll(allClicks.concat('R'))
+    setRight(right + 1)
+  }
+
+  return (
+    <div>
+      {left}
+
+      <Button onClick={handleLeftClick} text='left' />
+      <Button onClick={handleRightClick} text='right' />
+      {right}
+      <History allClicks={allClicks} />
+    </div>
+  )
+}
+```
+
+## Old React
+Old React required the use of class components if any components required state. There were no hooks.
+
+## Debugging React applications
+- Keep the browser's developer console **open at all times**.
+- Fix errors **immediately** instead of adding new code.
+- use `console.log` for debugging.
+- Add the **React developer tools extension** to Chrome - this adds a `Components` tab.
+
+## Rules of Hooks
+- `useState` + `useEffect` must NOT be called from inside:
+  - a loop,
+  - a conditional expression,
+  - or any place that is not a function defining a component
+
+Only call hooks from inside a function body that defines a React component:
+```JavaScript
+const App = () => {
+  // these are ok
+  const [age, setAge] = useState(0)
+  const [name, setName] = useState('Juha Tauriainen')
+
+  if ( age > 10 ) {
+    // this does not work!
+    const [foobar, setFoobar] = useState(null)
+  }
+
+  for ( let i = 0; i < age; i++ ) {
+    // also this is not good
+    const [rightWay, setRightWay] = useState(false)
+  }
+
+  const notGood = () => {
+    // and this is also illegal
+    const [x, setX] = useState(-1000)
+  }
+
+  return (
+    //...
+  )
+}
+```
+
+## Event Handling Revisited
+Event handlers **MUST** be a function or a function reference. Any other variable will not work, like below:
+```JavaScript
+// all bad examples
+<button onClick="crap...">button</button> // string
+<button onClick={value + 1}>button</button> // number
+<button onClick={value = 0}>button</button> // variable assignment
+<button onClick={console.log('clicked the button')}>
+  button
+</button> // function call
+<button onClick={setValue(0)}>button</button> // function call
+```
+
+These are okay:
+```JavaScript
+<button onClick={() => console.log('clicked the button')}>
+  button
+</button>
+<button onClick={() => setValue(0)}>button</button>
+```
+
+## A function that returns a function
+```JavaScript
+const App = () => {
+  const [value, setValue] = useState(10)
+
+
+  const hello = (who) => {
+    const handler = () => {
+      console.log('hello', who)
+    }
+    return handler
+  }
+
+  return (
+    // function call fed into mouse event is okay because function returns a function.
+    <div>
+      {value}
+      <button onClick={hello('world')}>button</button>
+      <button onClick={hello('react')}>button</button>
+      <button onClick={hello('function')}>button</button>
+    </div>
+  )
+}
+```
+Useful for defining generic functionality that can be customized with parameters.
+
+We can refactor that function in function in two steps.
+
+Step 1 - eliminate helper and directly return:
+```JavaScript
+const hello = (who) => {
+  return () => {
+    console.log('hello', who)
+  }
+}
+```
+
+Step 2 - omit curly braces and use compact arrow function syntax:
+```JavaScript
+const hello = (who) => () => {
+  console.log('hello', who)
+}
+```
+
+We can also define event handlers that set the state of a component to a given value:
+```JavaScript
+const App = () => {
+  const [value, setValue] = useState(10)
+  
+
+  const setToValue = (newValue) => () => {
+    console.log('value now', newValue)  // print the new value to console
+    setValue(newValue)
+  }
+  
+  return (
+    <div>
+      {value}
+
+      <button onClick={setToValue(1000)}>thousand</button>
+      <button onClick={setToValue(0)}>reset</button>
+      <button onClick={setToValue(value + 1)}>increment</button>
+    </div>
+  )
+}
+```
+
+We don't actually need that function that returns a function. The below works too:
+```JavaScript
+const App = () => {
+  const [value, setValue] = useState(10)
+
+  const setToValue = (newValue) => {
+    console.log('value now', newValue)
+    setValue(newValue)
+  }
+
+  return (
+    // we are just just passing in the setToValue() function as a function.
+    <div>
+      {value}
+      <button onClick={() => setToValue(1000)}> 
+        thousand
+      </button>
+      <button onClick={() => setToValue(0)}>
+        reset
+      </button>
+      <button onClick={() => setToValue(value + 1)}>
+        increment
+      </button>
+    </div>
+  )
+}
+```
+
+## Passing Event Handlers to Child Components
+```JavaScript
+const Button = (props) => (
+  // for the below, ensure that attribute names (.onClick) for the prop are correct. 
+  <button onClick={props.onClick}>
+    {props.text}
+  </button>
+)
+
+const App = (props) => {
+  // ...
+  return (
+    <div>
+      {value}
+
+      <Button onClick={() => setToValue(1000)} text="thousand" />
+      <Button onClick={() => setToValue(0)} text="reset" />
+      <Button onClick={() => setToValue(value + 1)} text="increment" />
+    </div>
+  )
+}
+```
+
+## Do Not Define Components Within Components
+```JavaScript
+// This is the right place to define a component
+const Button = (props) => (
+  <button onClick={props.onClick}>
+    {props.text}
+  </button>
+)
+
+const App = () => {
+  const [value, setValue] = useState(10)
+
+  const setToValue = newValue => {
+    console.log('value now', newValue)
+    setValue(newValue)
+  }
+
+  // Do not define components inside another component
+  // One problem: This will be treated as a new component on every render - React cannot optimize (cache stuff for example?) if so.
+
+  const Display = props => <div>{props.value}</div>
+
+  return (
+    <div>
+
+      <Display value={value} />
+      <Button onClick={() => setToValue(1000)} text="thousand" />
+      <Button onClick={() => setToValue(0)} text="reset" />
+      <Button onClick={() => setToValue(value + 1)} text="increment" />
+    </div>
+  )
+}
+```
+
+Do the below instead:
+```JavaScript
+const Display = props => <div>{props.value}</div>
+
+const Button = (props) => (
+  <button onClick={props.onClick}>
+    {props.text}
+  </button>
+)
+
+const App = () => {
+  const [value, setValue] = useState(10)
+
+  const setToValue = newValue => {
+    console.log('value now', newValue)
+    setValue(newValue)
+  }
+
+  return (
+    <div>
+      <Display value={value} />
+      <Button onClick={() => setToValue(1000)} text="thousand" />
+      <Button onClick={() => setToValue(0)} text="reset" />
+      <Button onClick={() => setToValue(value + 1)} text="increment" />
+    </div>
+  )
+}
+```
+
+## Useful Reading
+1. [Official React Documentation](https://react.dev/learn)
+2. [Egghead.io's](https://egghead.io/) ["Start learning React"](https://egghead.io/courses/start-learning-react)
+3. [Beginner's Guide to React](https://egghead.io/courses/the-beginner-s-guide-to-reactjs)
 
 
 
